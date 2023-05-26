@@ -1,3 +1,5 @@
+package com.kurtsevich.nyethack
+
 import java.io.File
 
 private const val TAVERN_NAME = "Taernyl's Folly"
@@ -72,7 +74,7 @@ private fun placeOrder(patronName: String, menuData: String) {
         } else {
             "$patronName says: Thanks for the $name"
         }
-        println("$phrase")
+        println(phrase)
     }
     println()
 }
