@@ -1,73 +1,130 @@
-import kotlin.math.roundToInt
+import java.io.File
 
 private const val TAVERN_NAME = "Taernyl's Folly"
+private const val WELCOME_PHRASE = "*** Welcome to $TAVERN_NAME ***"
+private const val LINE_LEGHT = WELCOME_PHRASE.length
 
-var playerGold = 10
-var playerSilver = 10
+
+val patronList = mutableListOf("Eli", "Mordoc", "Sophie")
+val lastName = listOf("Ironfoot", "Fernsworth", "Baggins")
+val uniquePatrons = mutableSetOf<String>()
+val menuList = File("data/tavern-menu-items.txt")
+    .readText()
+    .split("\n")
+val patronGold = mutableMapOf<String, Double>()
 
 fun main(args: Array<String>) {
-    placeOrder("shandy,Dragon's Breath,5.91")
+
+    println(WELCOME_PHRASE)
+
+    printMenu()
+
+    createPatrons()
+
+    uniquePatrons.forEach { patronGold[it] = 15.0 }
+
+    orders()
+
+    displayPatronBalances()
 }
 
-private fun placeOrder(menuData: String) {
+private fun displayPatronBalances() {
+    patronGold.forEach { (patron, balance) ->
+        println("$patron, balance: ${"%.2f".format(balance)}")
+    }
+}
+
+private fun orders() {
+    var orderCount = 0
+    while (orderCount < 10) {
+        placeOrder(
+            uniquePatrons.shuffled().first(),
+            menuList.shuffled().first()
+        )
+        orderCount++
+    }
+}
+
+private fun createPatrons() {
+    repeat(10) {
+        val first = patronList.shuffled().first()
+        val last = lastName.shuffled().first()
+        val name = "$first $last"
+        uniquePatrons.add(name)
+    }
+}
+
+
+private fun placeOrder(patronName: String, menuData: String) {
     val indexOfApostrophe = TAVERN_NAME.indexOf('\'')
     val tavernMaster = TAVERN_NAME.substring(0, indexOfApostrophe)
-    println("Madrigal speaks with $tavernMaster about their order.")
+    println("$patronName speaks with $tavernMaster about their order.")
 
     val (type, name, price) = menuData.split(",")
 
-    val isEnoughMoney = performPurchase(price.toDouble())
+    if (isEnoughMoney(patronName, price.toDouble())) {
+        println("$patronName buys a $name ($type) for $price")
 
-    if (isEnoughMoney) {
-        println("Madrigal buys a $name ($type) for $price")
+        performPurchase(price.toDouble(), patronName)
+
         val phrase = if (name == "Dragon's Breath") {
-            "Madrigal exclaims: ${toDragonSpeak("Ah, delicious $name!")}"
+            "$patronName exclaims: ${toDragonSpeak("Ah, delicious $name!")}"
         } else {
-            "Madrigal says: Thanks for the $name"
+            "$patronName says: Thanks for the $name"
         }
-        println(phrase)
-    } else {
-        println("You don't have enough money")
+        println("$phrase")
     }
-
-
+    println()
 }
 
-fun performPurchase(price: Double): Boolean {
-    displayBalance()
-    val totalPurse = playerGold + playerSilver / 100.0
-    println("Purchasing item for $price")
-
-    val remainingBalance = totalPurse - price
-
-
-    if (remainingBalance >= 0) {
-        println("Remaining balance: ${"%.2f".format(remainingBalance)}")
-        playerGold = remainingBalance.toInt()
-        playerSilver = (remainingBalance % 1 * 100).roundToInt()
-        return true
+fun isEnoughMoney(patronName: String, price: Double): Boolean {
+    if (patronGold.getValue(patronName) - price < 0) {
+        println("Screw $patronName and come back when you have enough money!")
+        uniquePatrons.remove(patronName)
+        patronGold.remove(patronName)
+        return false
     }
-    displayBalance()
-    return false
+    return true
 }
 
-fun displayBalance() {
-    println("Player's purse balance: Gold: $playerGold , Silver: $playerSilver")
+private fun performPurchase(price: Double, patronName: String) {
+    val totalPurse = patronGold.getValue(patronName)
+    patronGold[patronName] = totalPurse - price
 }
 
 private fun toDragonSpeak(phrase: String) =
     phrase.replace(Regex("[aeiouAEIOU]")) {
         when (it.value) {
-            "a" -> "4"
-            "A" -> "4"
-            "e" -> "3"
-            "E" -> "3"
-            "i" -> "1"
-            "I" -> "1"
-            "o" -> "0"
-            "O" -> "0"
-            "u" -> "|_|"
-            "U" -> "|_|"
+            "a", "A" -> "4"
+            "e", "E" -> "3"
+            "i", "I" -> "1"
+            "o", "O" -> "0"
+            "u", "U" -> "|_|"
             else -> it.value
         }
     }
+
+private fun printMenu() {
+    val menuType = mutableSetOf<String>()
+    menuList.forEach { data ->
+        val type = data.split(",")[0]
+        menuType.add(type)
+    }
+
+    menuType.forEach { type ->
+        println("           ~[$type]~")
+        menuList.forEach { data ->
+            val (typeCurrent, name, price) = data.split(",")
+            var dots = ""
+            while (name.length + price.length + dots.length <= LINE_LEGHT) {
+                dots += "."
+            }
+
+            if (typeCurrent == type) println("${
+                name.split(" ")
+                    .joinToString(" ") { it.replaceFirstChar { it.uppercase() } }
+            }$dots$price")
+        }
+    }
+    println()
+}
