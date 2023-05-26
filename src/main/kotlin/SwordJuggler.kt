@@ -13,6 +13,6 @@ fun main(args: Array<String>) {
     println("You jungle $swordsJuggling swords")
 }
 
-fun proficiencyCheck(swordsJuggling: Int?) {
+private fun proficiencyCheck(swordsJuggling: Int?) {
     checkNotNull(swordsJuggling) { "Player cannot juggle swords" }
 }
