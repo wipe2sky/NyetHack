@@ -1,14 +1,31 @@
 package com.kurtsevich.nyethack
 
-class Player {
-    var name = "madrigal"
-        get() = field.replaceFirstChar { it.uppercase() }
+import java.io.File
+
+class Player(
+    _name: String,
+    private var healthPoints: Int = 100,
+    val isBlessed: Boolean,
+    private val isImmortal: Boolean
+) {
+    var name = _name
+        get() = "${field.replaceFirstChar { it.uppercase() }} of $hometown"
         private set(value) {
             field = value.trim()
         }
-    var healthPoints = 89
-    val isBlessed = true
-    private val isImmortal = false
+    private val hometown by lazy { selectHometown() }
+
+
+    init {
+        require(healthPoints > 0) { "healthPoints must be greater than zero." }
+        require(name.isNotBlank()) { "player must have a name." }
+    }
+
+    constructor(name: String) : this(
+        _name = name,
+        isBlessed = true,
+        isImmortal = false
+    )
 
     fun castFireball(numFireballs: Int = 2) =
         println("A glass of Fireball springs into existence. (x$numFireballs)")
@@ -29,4 +46,10 @@ class Player {
 
             else -> "is in awful condition!"
         }
+
+    private fun selectHometown() = File("data/towns.txt")
+        .readText()
+        .split("\n")
+        .shuffled()
+        .first()
 }
