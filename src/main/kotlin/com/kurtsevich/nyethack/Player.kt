@@ -1,5 +1,6 @@
 package com.kurtsevich.nyethack
 
+import com.kurtsevich.nyethack.extensions.random
 import java.io.File
 
 class Player(
@@ -64,6 +65,5 @@ class Player(
     private fun selectHometown() = File("data/towns.txt")
         .readText()
         .split("\n")
-        .shuffled()
-        .first()
+        .random()
 }

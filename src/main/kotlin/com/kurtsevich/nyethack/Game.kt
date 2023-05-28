@@ -78,9 +78,8 @@ object Game {
         var bell = ""
         try {
             if (currentRoom is TownSquare && count.isNotBlank()) {
-                repeat(count.toInt()) {
-                    bell = bell.plus((currentRoom as TownSquare).ringBell()).plus("\n")
-                }
+                bell = "${(currentRoom as TownSquare).ringBell()}\n"
+                    .repeat(count.toInt())
             } else {
                 bell = "Impossible to find a bell in this place!\n"
             }

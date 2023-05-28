@@ -1,5 +1,6 @@
 package com.kurtsevich.nyethack
 
+import com.kurtsevich.nyethack.extensions.random as randomizer
 import java.io.File
 
 private const val TAVERN_NAME = "Taernyl's Folly"
@@ -40,8 +41,8 @@ private fun orders() {
     var orderCount = 0
     while (orderCount < 10) {
         placeOrder(
-            uniquePatrons.shuffled().first(),
-            menuList.shuffled().first()
+            uniquePatrons.randomizer(),
+            menuList.randomizer()
         )
         orderCount++
     }
@@ -49,8 +50,8 @@ private fun orders() {
 
 private fun createPatrons() {
     repeat(10) {
-        val first = patronList.shuffled().first()
-        val last = lastName.shuffled().first()
+        val first = patronList.randomizer()
+        val last = lastName.randomizer()
         val name = "$first $last"
         uniquePatrons.add(name)
     }
