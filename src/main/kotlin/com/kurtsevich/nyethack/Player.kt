@@ -4,10 +4,10 @@ import java.io.File
 
 class Player(
     _name: String,
-    private var healthPoints: Int = 100,
+    override var healthPoints: Int = 100,
     val isBlessed: Boolean,
     private val isImmortal: Boolean
-) {
+) : Fightable {
     var name = _name
         get() = "${field.replaceFirstChar { it.uppercase() }} of $hometown"
         private set(value) {
@@ -15,6 +15,9 @@ class Player(
         }
     private val hometown by lazy { selectHometown() }
     var currentPosition = Coordinate(0, 0)
+
+    override val diceCount = 3
+    override val diceSides = 6
 
 
     init {
@@ -27,6 +30,16 @@ class Player(
         isBlessed = true,
         isImmortal = false
     )
+
+    override fun attack(opponent: Fightable): Int {
+        val damageDealt = if (isBlessed) {
+            damageRoll * 2
+        } else {
+            damageRoll
+        }
+        opponent.healthPoints -= damageDealt
+        return damageDealt
+    }
 
     fun castFireball(numFireballs: Int = 2) =
         println("A glass of Fireball springs into existence. (x$numFireballs)")

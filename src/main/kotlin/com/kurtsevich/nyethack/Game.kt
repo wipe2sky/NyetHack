@@ -1,5 +1,7 @@
 package com.kurtsevich.nyethack
 
+import kotlin.system.exitProcess
+
 fun main(args: Array<String>) {
     Game.play()
 }
@@ -62,10 +64,74 @@ object Game {
 
         private fun commandNotFound() = "I'm not quite sure what you're trying to do!\n"
 
-        fun processCommand() = when (command.lowercase()) {
+        fun processCommand(): String = when (command.lowercase()) {
             "move" -> move(argument)
+            "map" -> writeMap()
+            "ring" -> ring(argument)
+            "fight" -> fight()
+            "quit" -> quitGame()
             else -> commandNotFound()
         }
+    }
+
+    private fun ring(count: String): String {
+        var bell = ""
+        try {
+            if (currentRoom is TownSquare && count.isNotBlank()) {
+                repeat(count.toInt()) {
+                    bell = bell.plus((currentRoom as TownSquare).ringBell()).plus("\n")
+                }
+            } else {
+                bell = "Impossible to find a bell in this place!\n"
+            }
+        } catch (e: NumberFormatException) {
+            bell = "You can't strike the bell \"$count\" times! Try again."
+        }
+        return bell
+    }
+
+    private fun writeMap(): String {
+        var map = ""
+        for (y in worldMap.indices) {
+            for (x in worldMap[y].indices) {
+                map = if (Coordinate(x, y) == player.currentPosition) {
+                    map.plus("X")
+                } else {
+                    map.plus("O")
+                }
+            }
+            map = map.plus("\n")
+        }
+        return map
+    }
+
+    private fun fight() = currentRoom.monster?.let {
+        println()
+        while (player.healthPoints > 0 && it.healthPoints > 0) {
+            slay(it)
+            Thread.sleep(1000)
+        }
+        "Combat complete.\n"
+    } ?: "There's nothing here to fight."
+
+    private fun slay(monster: Monster) {
+        println("${monster.name} did ${monster.attack(player)} damage! ")
+        println("${player.name} did ${player.attack(monster)} damage! ")
+
+        if (player.healthPoints <= 0) {
+            println(">>>> You have been defeated! Thanks for playing. <<<<")
+            exitProcess(0)
+        }
+
+        if (monster.healthPoints <= 0) {
+            println(">>>> ${monster.name} has been defeated! <<<<")
+            currentRoom.monster = null
+        }
+    }
+
+    private fun quitGame(): Nothing {
+        println("Game over! Have a nice day.")
+        exitProcess(0)
     }
 }
 
