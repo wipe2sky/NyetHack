@@ -1,7 +1,7 @@
 package com.kurtsevich.nyethack
 
-import com.kurtsevich.nyethack.extensions.random as randomizer
 import java.io.File
+import com.kurtsevich.nyethack.extensions.random as randomizer
 
 private const val TAVERN_NAME = "Taernyl's Folly"
 private const val WELCOME_PHRASE = "*** Welcome to $TAVERN_NAME ***"
@@ -15,14 +15,35 @@ val menuList = File("data/tavern-menu-items.txt")
     .readText()
     .split("\n")
 val patronGold = mutableMapOf<String, Double>()
+private fun String.toDragonSpeak() = this.replace(Regex("[aeiouAEIOU]")) {
+    when (it.value) {
+        "a", "A" -> "4"
+        "e", "E" -> "3"
+        "i", "I" -> "1"
+        "o", "O" -> "0"
+        "u", "U" -> "|_|"
+        else -> it.value
+    }
+}
+
+private fun String.frame(padding: Int): String {
+    val greeting = "$this!"
+    val formatChar = "*"
+    val middle = formatChar.padEnd(padding)
+        .plus(greeting)
+        .plus(formatChar.padStart(padding))
+    val end = (0 until middle.length).joinToString("") { formatChar }
+    return "$end\n$middle\n$end"
+}
 
 fun main(args: Array<String>) {
 
-    println(WELCOME_PHRASE)
+    println(WELCOME_PHRASE.frame(5))
 
     printMenu()
 
-    createPatrons()
+    uniquePatrons.addAll(createPatrons())
+    println(uniquePatrons)
 
     uniquePatrons.forEach { patronGold[it] = 15.0 }
 
@@ -48,14 +69,14 @@ private fun orders() {
     }
 }
 
-private fun createPatrons() {
-    repeat(10) {
-        val first = patronList.randomizer()
-        val last = lastName.randomizer()
-        val name = "$first $last"
-        uniquePatrons.add(name)
-    }
+private fun createPatrons(): Set<String> = generateSequence {
+    val first = patronList.random()
+    val last = lastName.random()
+    "$first $last"
 }
+    .distinct()
+    .take(9)
+    .toSet()
 
 
 private fun placeOrder(patronName: String, menuData: String) {
@@ -71,7 +92,7 @@ private fun placeOrder(patronName: String, menuData: String) {
         performPurchase(price.toDouble(), patronName)
 
         val phrase = if (name == "Dragon's Breath") {
-            "$patronName exclaims: ${toDragonSpeak("Ah, delicious $name!")}"
+            "$patronName exclaims: ${"Ah, delicious $name!".toDragonSpeak()}"
         } else {
             "$patronName says: Thanks for the $name"
         }
@@ -94,18 +115,6 @@ private fun performPurchase(price: Double, patronName: String) {
     val totalPurse = patronGold.getValue(patronName)
     patronGold[patronName] = totalPurse - price
 }
-
-private fun toDragonSpeak(phrase: String) =
-    phrase.replace(Regex("[aeiouAEIOU]")) {
-        when (it.value) {
-            "a", "A" -> "4"
-            "e", "E" -> "3"
-            "i", "I" -> "1"
-            "o", "O" -> "0"
-            "u", "U" -> "|_|"
-            else -> it.value
-        }
-    }
 
 private fun printMenu() {
     val menuType = mutableSetOf<String>()
